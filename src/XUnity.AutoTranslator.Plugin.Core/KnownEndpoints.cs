@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using XUnity.AutoTranslator.Plugin.Core.Constants;
+using XUnity.AutoTranslator.Plugin.Core.Tcp;
 using XUnity.AutoTranslator.Plugin.Core.Web;
 
 namespace XUnity.AutoTranslator.Plugin.Core
@@ -27,6 +28,8 @@ namespace XUnity.AutoTranslator.Plugin.Core
                return new WatsonTranslateEndpoint();
             case KnownEndpointNames.ExciteTranslate:
                return new ExciteTranslateEndpoint();
+            case KnownEndpointNames.LecPowerTranslator:
+               return new LecTranslationEndpoint();
             default:
                return new DefaultEndpoint( identifier );
          }

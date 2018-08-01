@@ -8,10 +8,14 @@ namespace XUnity.AutoTranslator.Plugin.Core.Tcp
 {
    public static class StreamExtensions
    {
-      public static ISendResponse<TResponse> Send<TRequest, TResponse>( this Stream stream, TRequest request )
+      public static ISendReceive<TResponse> Send<TRequest, TResponse>( this Stream stream, TRequest request, Action<TResponse> completed = null )
       {
-         var operation = new SendAndReceiveOperation<TRequest, TResponse>( stream, request );
-         return operation;
+         return new SendAndReceiveOperation<TRequest, TResponse>( stream, request, completed );
+      }
+
+      public static ISend Send<TRequest>( this Stream stream, TRequest request, Action completed = null )
+      {
+         return new SendOperation<TRequest>( stream, request, completed );
       }
    }
 }

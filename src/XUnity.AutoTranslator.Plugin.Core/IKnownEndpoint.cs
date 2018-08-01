@@ -30,5 +30,10 @@ namespace XUnity.AutoTranslator.Plugin.Core
       /// "Update" game loop method.
       /// </summary>
       void OnUpdate();
+
+      /// <summary>
+      /// Called when the game is exited.
+      /// </summary>
+      void OnExit();
    }
 }

@@ -133,5 +133,9 @@ namespace XUnity.AutoTranslator.Plugin.Core.Web
       {
          return null;
       }
+
+      public virtual void OnExit()
+      {
+      }
    }
 }

@@ -5,7 +5,7 @@ namespace XUnity.AutoTranslator.Plugin.Core.Tcp
    [System.Serializable]
    internal class Packet
    {
-      public PacketMethod method { get; set; }
+      public string method { get; set; }
 
       [DefaultValue( null )] public int? id = null;
       [DefaultValue( null )] public string text;

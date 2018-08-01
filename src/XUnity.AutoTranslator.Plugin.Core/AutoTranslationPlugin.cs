@@ -181,7 +181,7 @@ namespace XUnity.AutoTranslator.Plugin.Core
          }
          catch( Exception e )
          {
-            Logger.Current.Error( e, "An error occurred while saving translations to disk."  );
+            Logger.Current.Error( e, "An error occurred while saving translations to disk." );
          }
       }
 
@@ -674,6 +674,21 @@ namespace XUnity.AutoTranslator.Plugin.Core
          yield return new WaitForSeconds( delay );
 
          onContinue();
+      }
+
+      public void OnApplicationQuit()
+      {
+         if( _endpoint != null )
+         {
+            try
+            {
+               _endpoint.OnExit();
+            }
+            catch( Exception e )
+            {
+               Logger.Current.Error( e, "Error while shutting endpoint down." );
+            }
+         }
       }
 
       public void Update()

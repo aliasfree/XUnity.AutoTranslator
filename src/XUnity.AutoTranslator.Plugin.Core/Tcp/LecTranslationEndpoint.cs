@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using UnityEngine;
+using RestSharp.Contrib;
 
 namespace XUnity.AutoTranslator.Plugin.Core.Tcp
 {
@@ -25,6 +24,17 @@ namespace XUnity.AutoTranslator.Plugin.Core.Tcp
 
       public bool IsBusy => _isBusy;
 
+      public void OnExit()
+      {
+         var requestPacket = new Packet
+         {
+            method = "quit",
+         };
+
+         // FIXME: Does not complete in time; MUST BE SYNCHRONOUS!
+         _stream.Send( requestPacket, () => _connection.Close() );
+      }
+
       public void OnUpdate()
       {
       }
@@ -41,7 +51,7 @@ namespace XUnity.AutoTranslator.Plugin.Core.Tcp
          {
             var requestPacket = new Packet
             {
-               method = PacketMethod.translate,
+               method = "translate",
                id = _id++,
                text = Uri.EscapeDataString( untranslatedText )
             };
@@ -50,66 +60,34 @@ namespace XUnity.AutoTranslator.Plugin.Core.Tcp
 
             yield return response;
 
-            var responsePacket = response.Response;
+            if( response.Succeeded )
+            {
+               var responsePacket = response.Response;
+               Logger.Current.Debug( "responsePacket.success: " + responsePacket.success );
 
-            var translatedText = Uri.UnescapeDataString( responsePacket.translation );
 
-            success( translatedText );
+               if( responsePacket.success != false )
+               {
+                  var translatedText = HttpUtility.UrlDecode( responsePacket.translation );
+
+                  success( translatedText );
+               }
+               else
+               {
+                  failure();
+                  Logger.Current.Debug( "!responsePacket.success" );
+               }
+            }
+            else
+            {
+               Logger.Current.Debug( "!response.Succeeded" );
+               failure();
+            }
          }
          finally
          {
             _isBusy = false;
          }
       }
-   }
-
-   public class SendAndReceiveOperation<TRequest, TResponse> : CustomYieldInstruction, ISendResponse<TResponse>
-   {
-      private bool _completed;
-
-      public SendAndReceiveOperation( Stream stream, TRequest packet )
-      {
-         var str = JsonUtility.ToJson( packet );
-         var bytes = Encoding.UTF8.GetBytes( str );
-
-         var size = bytes.Length;
-         var sizeBytes = BitConverter.GetBytes( System.Net.IPAddress.HostToNetworkOrder( size ) );
-
-         stream.BeginWrite( sizeBytes, 0, sizeBytes.Length, ar =>
-         {
-            stream.EndWrite( ar );
-            stream.BeginWrite( bytes, 0, bytes.Length, br =>
-            {
-               stream.EndWrite( br );
-
-               byte[] buffer = new byte[ 4 ];
-               stream.BeginRead( buffer, 0, size, cr =>
-               {
-                  var count = stream.EndRead( cr );
-
-                  size = System.Net.IPAddress.NetworkToHostOrder( BitConverter.ToInt32( buffer, 0 ) );
-                  buffer = new byte[ size ];
-                  stream.BeginRead( buffer, 0, size, dr =>
-                  {
-                     count = stream.EndRead( dr );
-
-                     var packetString = Encoding.UTF8.GetString( buffer );
-                     Response = JsonUtility.FromJson<TResponse>( packetString );
-
-                     _completed = true;
-                  }, null );
-               }, null );
-            }, null );
-         }, null );
-      }
-
-      public override bool keepWaiting => !_completed;
-
-      public TResponse Response { get; private set; }
-   }
-
-   public interface ISendResponse<TResponse>
-   {
-      TResponse Response { get; }
    }
 }

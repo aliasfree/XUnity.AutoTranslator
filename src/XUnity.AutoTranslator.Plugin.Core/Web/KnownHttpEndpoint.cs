@@ -147,5 +147,10 @@ namespace XUnity.AutoTranslator.Plugin.Core.Web
          }
          return _client;
       }
+
+      public virtual void OnExit()
+      {
+
+      }
    }
 }
